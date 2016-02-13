@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1"
+		xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"
+		xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v2"
+		creator="nüvi 50" version="1.1"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.topografix.com/GPX/1/1
+		http://www.topografix.com/GPX/1/1/gpx.xsd
+		http://www.garmin.com/xmlschemas/GpxExtensions/v3
+		http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd
+		http://www.garmin.com/xmlschemas/TrackPointExtension/v2
+		http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd"
+>
+<metadata>
+	<link href="http://www.garmin.com">
+		<text>Garmin International</text>
+	</link><time>2014-03-10T21:29:46Z</time>
+</metadata>
+<trk>
+	<name>ACTIVE LOG: 22 FEB 2014 10:45</name>
+	<trkseg>
+		<trkpt lat="xx.xxxxx" lon="-xx.xxxx">
+		<ele>xxx.xx</ele>
+		<time>2014-02-22T14:45:21Z</time>
+		<extensions>
+			<gpxtpx:TrackPointExtension>
+				<gpxtpx:speed>1.37</gpxtpx:speed>
+				<gpxtpx:course>262.59</gpxtpx:course>
+			</gpxtpx:TrackPointExtension>
+		</extensions>
+		</trkpt>
