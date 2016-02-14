@@ -1,45 +1,29 @@
-import os
+# import os
 import re
 import sys
+import itertools
 from datetime import datetime
-from alancodinggpx.objects import Point
+from alancodinggpx.objects import Point, Archive
 
 # Put your gpx archive files in the archive directory
-cwd = os.getcwd()
-archive_dir = os.path.join(cwd, 'archive/')
-filelist = os.listdir(archive_dir)
-
-# Sort file list numerically, not alphabetically
-filelist = sorted(filelist, key=lambda x: float(x[:-4]))
+archive = Archive('archive/')
 
 print('\nFiles found in archive folder:')
-print(' '.join(filelist) + '\n')
+print(' '.join(archive.filelist) + '\n')
 
-filename = filelist[0]
-
-with open(os.path.join(archive_dir, filename), 'r') as f:
-	full_file = f.read()
-
-pattern = '(?P<trkpt>\<trkpt.*?\/trkpt\>)'
-
-points = re.findall(pattern, full_file)
-
-print(' Number of points in set: '+str(len(points)))
-print('')
-
-print('Example:')
-for i in range(2):
-	print(points[i])
-	pt = Point(points[i])
+i = 0
+print('First 3 items in file list\n')
+for pt in itertools.islice(archive, 3):
 	print("time: "+str(pt.time))
 	if i > 0:
 		print('time diff: ' + str(pt.time - t_last))
 	t_last = pt.time
-	print("speed: "+pt.extract_field('speed'))
-	print("course: "+pt.extract_field('course'))
-	print('cords: ' + str(pt.extract_cords()))
+	print("speed: "+str(pt.speed))
+	print("course: "+str(pt.course))
+	print('cords: ' + str((pt.lat, pt.lon)))
 	print('speed times 5 ' + str(pt.speed>1))
 	print('')
+
 
 # Cycle through entire data
 print('Testing entirity of the files:')
@@ -51,36 +35,19 @@ shist = [0 for i in range(hist_bins)]
 
 hist_dict = {}
 
-sys.stdout.write('filenames: ')
-sys.stdout.flush()
-for filename in filelist:
-	sys.stdout.write(' ' + filename)
-	sys.stdout.flush()
-	with open(os.path.join(archive_dir, filename), 'r') as f:
-		full_file = f.read()
+i = 0
+for pt in archive:
+	i += 1
 
-	points = re.findall(pattern, full_file)
+	if i > 1:
+		if pt.speed is not None:
+			shist[int(pt.speed/hist_delta)] += 1
+			if pt.speed not in hist_dict:
+				hist_dict[pt.speed] = 1
+			else:
+				hist_dict[pt.speed] += 1
 
-	i = 0
-	for ptxt in points:
-		i += 1
-		try:
-			pt = Point(ptxt)
-		except Exception as ex:
-			print('')
-			print('Failed on point # ' + str(i))
-			print('Text: ' + ptxt)
-			print(ex)
-
-		if i > 1:
-			if pt.speed is not None:
-				shist[int(pt.speed/hist_delta)] += 1
-				if pt.speed not in hist_dict:
-					hist_dict[pt.speed] = 1
-				else:
-					hist_dict[pt.speed] += 1
-
-		last = pt
+	last = pt
 
 print('\n')
 print('Speed histogram:')

@@ -1,5 +1,7 @@
 import re
+import os
 from datetime import datetime
+
 
 class Point(object):
 	time = None
@@ -40,3 +42,53 @@ class Point(object):
 		if lat is None or lon is None:
 			raise Exception('Lattitude and longitude for point not found')
 		return (lat, lon)
+
+
+class Archive(object):
+	filelist = None
+
+	working_file = None
+	working_file_index = None
+	working_list = None
+	working_list_index = None
+
+	def __init__(self, path, cache=False, pickle=False):
+		cwd = os.getcwd()
+		self.archive_dir = os.path.join(cwd, path)
+		raw_filelist = os.listdir(self.archive_dir)
+
+		filelist = []
+		for f in raw_filelist:
+			if len(f) > 4 and f[-4:] == '.gpx':
+				filelist.append(f)
+
+		# Sort file list numerically, not alphabetically
+		self.filelist = sorted(filelist, key=lambda x: float(x[:-4]))
+
+		if len(self.filelist) == 0:
+			raise Exception('Did not find any gpx files in archive dir')
+
+		self.working_file_index = 0
+		self.load_list_from_file()
+
+	def __iter__(self):
+		return self
+
+	def __next__(self):
+		if self.working_list_index >= len(self.working_list):
+			if self.working_file_index >= len(self.filelist):
+				raise StopIteration
+			self.load_list_from_file()
+			self.working_file_index += 1
+		pt = Point(self.working_list[self.working_list_index])
+		self.working_list_index += 1
+		return pt
+
+	def load_list_from_file(self):
+		self.working_file = self.filelist[self.working_file_index]
+		print('New file: ' + self.working_file)
+		with open(os.path.join(self.archive_dir, self.working_file), 'r') as f:
+			full_file = f.read()
+		pattern = '(?P<trkpt>\<trkpt.*?\/trkpt\>)'
+		self.working_list = re.findall(pattern, full_file)
+		self.working_list_index = 0

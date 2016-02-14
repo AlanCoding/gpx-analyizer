@@ -8,8 +8,25 @@ Will also look into a compilation of sample outputs as well.
 ## Instructions
 
 Plug in your Garmin unit to your computer and copy over the files in the
-gpx archive folder into the archive folder of this project. Then run the
-analyzer.
+gpx archive folder into the archive folder of this project. These should
+follow a filename pattern like:
+
+ - 1.gpx
+ - 2.gpx
+ - 3.gpx
+
+You must put them in the archive folder with this naming. Then you can run the
+analyzer with `python analyze.py`. Or, you can import the python module, and
+then use it kind of like this:
+
+```python
+from alancodinggpx.objects import Archive
+
+archive = Archive('archive/')
+
+for pt in archive:
+    print(pt.speed)
+```
 
 ## Questions
 
