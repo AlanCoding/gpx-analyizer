@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+from datetime import datetime
 
 class Point(object):
 	full_string = None
@@ -15,7 +16,8 @@ class Point(object):
 		self.full_string = stx
 
 	def store_fields(self):
-		self.time = pt.extract_field('time')
+		time = pt.extract_field('time')
+		self.time = datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ')
 		speed = pt.extract_field('speed')
 		self.speed = float(speed) if type(speed) is str else None
 		course = pt.extract_field('course')
@@ -70,14 +72,17 @@ print(' Number of points in set: '+str(len(points)))
 print('')
 
 print('Example:')
-for i in range(1):
+for i in range(2):
 	print(points[i])
 	pt = Point(points[i])
-	print("time: "+pt.extract_field('time'))
+	pt.store_fields()
+	print("time: "+str(pt.time))
+	if i > 0:
+		print('time diff: ' + str(pt.time - t_last))
+	t_last = pt.time
 	print("speed: "+pt.extract_field('speed'))
 	print("course: "+pt.extract_field('course'))
 	print('cords: ' + str(pt.extract_cords()))
-	pt.store_fields()
 	print('speed times 5 ' + str(pt.speed>1))
 	print('')
 
@@ -116,8 +121,6 @@ for filename in filelist:
 
 		if i > 1:
 			if pt.speed is not None:
-				# if pt.speed > 50.:
-				# 	print('Super fast point' + str(pt.speed))
 				shist[int(pt.speed/hist_delta)] += 1
 				if pt.speed not in hist_dict:
 					hist_dict[pt.speed] = 1
@@ -126,20 +129,18 @@ for filename in filelist:
 
 		last = pt
 
-print('')
+print('\n')
 print('Speed histogram:')
 print(' total sample points= ' + str(sum(shist)))
 # shist = [hist_max_width * s / max(shist) for s in shist]
 # for i in range(hist_bins):
 # 	print((str(hist_delta*(i-1)) + '-to-' + str(hist_delta*i)).ljust(9) + '#' * int(shist[i]))
 
-# print('')
-print(hist_dict)
-
 print('upper_bound      frequency')
 hist_max = max(hist_dict.values())
 for k in sorted(hist_dict.keys()):
-	print(str(round(k*2.23694,4)).ljust(8) + '#' * int(hist_dict[k] * hist_max_width / hist_max) )
+	print(str(round(k*2.23694,4)).ljust(8) + '#' * int(hist_dict[k] * hist_max_width / hist_max) +
+		'   ' + hist_dict[k])
 
 print('')
-print('sorted values: ' + str(sorted(hist_dict.keys())))
+# print('sorted values: ' + str(sorted(hist_dict.keys())))
