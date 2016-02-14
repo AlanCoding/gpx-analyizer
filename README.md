@@ -1,5 +1,8 @@
 # gpx-analyizer
-Project to gobble up some personal Garmin navigator data
+Project to gobble up some personal Garmin navigator data.
+
+For research about some related resources, see [docs/Notes.md]. For some
+pretty graphs, I hope to have an iPython notebook soon.
 
 ## Instructions
 
@@ -15,9 +18,6 @@ never went 1,000 miles per hour, so if we see that, it's safe to say that we
 can mark some points as invalid. But our intuition is much more detailed than
 this.
 
-Here are some details about the format in general:
-
-http://www.topografix.com/gpx_manual.asp
 
 ## Discoveries
 
