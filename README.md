@@ -1,8 +1,9 @@
 # gpx-analyizer
 Project to gobble up some personal Garmin navigator data.
 
-For research about some related resources, see [docs/Notes.md]. For some
-pretty graphs, I hope to have an iPython notebook soon.
+For research about some related resources, see [the notes page](docs/Notes.md).
+For some pretty graphs, I hope to have an iPython notebook soon.
+Will also look into a compilation of sample outputs as well.
 
 ## Instructions
 
