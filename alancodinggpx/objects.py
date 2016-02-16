@@ -1,6 +1,30 @@
 import re
 import os
 from datetime import datetime
+from math import radians, cos, sin, asin, sqrt
+
+
+class Coordinate(object):
+
+	def __init__(self, lat, lon, ele):
+		self.lon = lon
+		self.lat = lat
+		self.ele = ele
+
+	def dist(self, c2):
+		d_lon = c2.lon - self.lon
+		d_lat = c2.lat - self.lat
+		d_ele = c2.ele - self.ele
+
+		lon_m = self.lon + d_lon * 0.5
+		lat_m = self.lat + d_lat * 0.5
+		ele_m = self.ele + d_ele * 0.5
+
+		R = 6367000.0  # Radius of Earth in meters
+
+		d1 = R * radians(d_lon) * cos( radians(lat_m) )
+		d2 = R * radians(d_lat)
+		return sqrt(d1**2 + d2**2 + d_ele**2)
 
 
 class Point(object):
@@ -10,6 +34,7 @@ class Point(object):
 	elevation = None
 	lat = None
 	lon = None
+	cord = None
 
 	def __init__(self, full_string):
 		time = self.extract_field(full_string, 'time')
@@ -20,6 +45,15 @@ class Point(object):
 		self.course = float(course) if type(course) is str else None
 		self.elevation = float(self.extract_field(full_string, 'ele'))
 		(self.lat, self.lon) = self.extract_cords(full_string)
+		self.cord = Coordinate(self.lat, self.lon, self.elevation)
+
+	def dist(self, p2):
+		return self.cord.dist(p2.cord)
+
+	def calc_speed(self, p2):
+		distance = self.cord.dist(p2.cord)
+		deltat = (self.time - p2.time).total_seconds()
+		return distance / deltat
 
 	def extract_field(self, full_string, name):
 		prefix = ''
@@ -41,7 +75,7 @@ class Point(object):
 		lon = match.group('lon')
 		if lat is None or lon is None:
 			raise Exception('Lattitude and longitude for point not found')
-		return (lat, lon)
+		return (float(lat), float(lon))
 
 
 class Archive(object):

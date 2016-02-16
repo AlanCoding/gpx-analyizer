@@ -16,8 +16,11 @@ print('First 3 items in file list\n')
 for pt in itertools.islice(archive, 3):
 	print("time: "+str(pt.time))
 	if i > 0:
-		print('time diff: ' + str(pt.time - t_last))
-	t_last = pt.time
+		print('time diff:    ' + str(pt.time - pt_last.time))
+		print('meters moved: ' + str(pt.dist(pt_last)))
+		print('calc speed:   ' + str(pt.calc_speed(pt_last)))
+	pt_last = pt
+	i += 1
 	print("speed: "+str(pt.speed))
 	print("course: "+str(pt.course))
 	print('cords: ' + str((pt.lat, pt.lon)))
