@@ -11,6 +11,9 @@ class Coordinate(object):
 		self.lat = lat
 		self.ele = ele
 
+	def __str__(self):
+		return '(la:' + str(self.lat) + ' lo:' + str(self.lon) + ' el:' + str(self.ele) + ')'
+
 	def dist(self, c2):
 		d_lon = c2.lon - self.lon
 		d_lat = c2.lat - self.lat
@@ -31,9 +34,6 @@ class Point(object):
 	time = None
 	speed = None
 	course = None
-	elevation = None
-	lat = None
-	lon = None
 	cord = None
 
 	def __init__(self, full_string):
@@ -43,9 +43,31 @@ class Point(object):
 		self.speed = float(speed) if type(speed) is str else None
 		course = self.extract_field(full_string, 'course')
 		self.course = float(course) if type(course) is str else None
-		self.elevation = float(self.extract_field(full_string, 'ele'))
-		(self.lat, self.lon) = self.extract_cords(full_string)
-		self.cord = Coordinate(self.lat, self.lon, self.elevation)
+		(lat, lon) = self.extract_cords(full_string)
+		ele = float(self.extract_field(full_string, 'ele'))
+		self.cord = Coordinate(lat, lon, ele)
+
+	def __str__(self):
+		if self.speed is None:
+			return 'stopped at             ' + str(self.time)
+		else:
+			return 'moving ' + str(round(self.speed*2.23694,2)).ljust(5) + ' mph ' + str(self.cardnal()).ljust(2) + ' at ' + str(self.time)
+
+	def cardnal(self):
+		if self.course is None:
+			return 'stationary'
+		else:
+			ang45 = (self.course + 45.) % 360.
+			dirs = ['N', 'E', 'S', 'W']
+			dint = int(ang45/90.)
+			d = dirs[dint]
+			ang_sm = ang45 % 90.
+			if ang_sm < 90./3.:
+				return dirs[dint] + dirs[(dint-1) % 4]
+			elif ang_sm < 90.*2./3.:
+				return dirs[dint]
+			else:
+				return dirs[dint] + dirs[(dint-1) % 4]
 
 	def dist(self, p2):
 		return self.cord.dist(p2.cord)
@@ -86,9 +108,14 @@ class Archive(object):
 	working_list = None
 	working_list_index = None
 
+	last = None
+
 	def __init__(self, path, cache=False, pickle=False):
-		cwd = os.getcwd()
-		self.archive_dir = os.path.join(cwd, path)
+		if path.startswith('/'):
+			self.archive_dir = os.listdir(path)
+		else:
+			cwd = os.getcwd()
+			self.archive_dir = os.path.join(cwd, path)
 		raw_filelist = os.listdir(self.archive_dir)
 
 		filelist = []
@@ -104,6 +131,9 @@ class Archive(object):
 
 		self.working_file_index = 0
 		self.load_list_from_file()
+
+	def __str__(self):
+		return 'gpx archive with ' + str(len(self.filelist)) + ' files'
 
 	def __iter__(self):
 		return self

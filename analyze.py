@@ -7,6 +7,8 @@ from alancodinggpx.objects import Point, Archive
 
 # Put your gpx archive files in the archive directory
 archive = Archive('archive/')
+print('\n')
+print(str(archive))
 
 print('\nFiles found in archive folder:')
 print(' '.join(archive.filelist) + '\n')
@@ -14,17 +16,14 @@ print(' '.join(archive.filelist) + '\n')
 i = 0
 print('First 3 items in file list\n')
 for pt in itertools.islice(archive, 3):
-	print("time: "+str(pt.time))
 	if i > 0:
-		print('time diff:    ' + str(pt.time - pt_last.time))
+		print('time diff:    ' + str((pt.time - pt_last.time).total_seconds()) + ' seconds')
 		print('meters moved: ' + str(pt.dist(pt_last)))
-		print('calc speed:   ' + str(pt.calc_speed(pt_last)))
+		print('speed, calc: ' + str(round(pt.calc_speed(pt_last),2)) + ' given: ' + str(pt.speed))
 	pt_last = pt
 	i += 1
-	print("speed: "+str(pt.speed))
-	print("course: "+str(pt.course))
-	print('cords: ' + str((pt.lat, pt.lon)))
-	print('speed times 5 ' + str(pt.speed>1))
+	print('point: '+str(pt))
+	print('cords: ' + str(pt.cord))
 	print('')
 
 
@@ -41,6 +40,8 @@ hist_dict = {}
 i = 0
 for pt in archive:
 	i += 1
+	if i < 100:
+		print(str(pt))
 
 	if i > 1:
 		if pt.speed is not None:
@@ -55,9 +56,6 @@ for pt in archive:
 print('\n')
 print('Speed histogram:')
 print(' total sample points= ' + str(sum(shist)))
-# shist = [hist_max_width * s / max(shist) for s in shist]
-# for i in range(hist_bins):
-# 	print((str(hist_delta*(i-1)) + '-to-' + str(hist_delta*i)).ljust(9) + '#' * int(shist[i]))
 
 print('upper_bound      frequency')
 hist_max = max(hist_dict.values())
