@@ -1,5 +1,6 @@
 import re
 import os
+import pickle
 from datetime import datetime
 from math import radians, cos, sin, asin, sqrt
 
@@ -51,7 +52,7 @@ class Point(object):
 		if self.speed is None:
 			return 'stopped at             ' + str(self.time)
 		else:
-			return 'moving ' + str(round(self.speed*2.23694,2)).ljust(5) + ' mph ' + str(self.cardnal()).ljust(2) + ' at ' + str(self.time)
+			return 'moving ' + str(round(self.speed*2.23694,2)).ljust(5) + ' mph ' + str(self.cardnal()) + ' at ' + str(self.time)
 
 	def cardnal(self):
 		if self.course is None:
@@ -65,9 +66,9 @@ class Point(object):
 			if ang_sm < 90./3.:
 				return dirs[dint] + dirs[(dint-1) % 4]
 			elif ang_sm < 90.*2./3.:
-				return dirs[dint]
+				return dirs[dint].ljust(2)
 			else:
-				return dirs[dint] + dirs[(dint-1) % 4]
+				return (dirs[dint] + dirs[(dint-1) % 4]).ljust(2)
 
 	def dist(self, p2):
 		return self.cord.dist(p2.cord)
@@ -107,14 +108,21 @@ class Archive(object):
 	working_file_index = None
 	working_list = None
 	working_list_index = None
+	working_point_index = None
 
-	last = None
+	point_list = None
 
-	def __init__(self, path, cache=False, pickle=False):
+	def __init__(self, path, cache=False):
+		cwd = os.getcwd()
+		if cache:
+			dest_filename = os.path.join(cwd, 'pickle/points_pickle.p')
+			if os.path.isfile(dest_filename):
+				self.point_list = pickle.load( open( dest_filename, "rb" ) )
+				self.working_point_index = 0
+
 		if path.startswith('/'):
 			self.archive_dir = os.listdir(path)
 		else:
-			cwd = os.getcwd()
 			self.archive_dir = os.path.join(cwd, path)
 		raw_filelist = os.listdir(self.archive_dir)
 
@@ -129,8 +137,18 @@ class Archive(object):
 		if len(self.filelist) == 0:
 			raise Exception('Did not find any gpx files in archive dir')
 
+		if cache and self.point_list is None:
+			pt_list = []
+			for filename in self.filelist:
+				patern_list = self.load_list_from_file(filename)
+				for pattern in patern_list:
+					pt_list.append(Point(pattern))
+			self.point_list = pt_list
+			dest_filename = os.path.join(cwd, 'pickle/points_pickle.p')
+			pickle.dump(self.point_list, open(dest_filename, 'wb'))
+
 		self.working_file_index = 0
-		self.load_list_from_file()
+		self.load_list_from_file(self.filelist[0])
 
 	def __str__(self):
 		return 'gpx archive with ' + str(len(self.filelist)) + ' files'
@@ -139,20 +157,26 @@ class Archive(object):
 		return self
 
 	def __next__(self):
-		if self.working_list_index >= len(self.working_list):
-			if self.working_file_index >= len(self.filelist):
+		if self.point_list:
+			if self.working_point_index > len(self.point_list):
 				raise StopIteration
-			self.load_list_from_file()
-			self.working_file_index += 1
-		pt = Point(self.working_list[self.working_list_index])
-		self.working_list_index += 1
-		return pt
+			return self.point_list[self.working_point_index]
+			self.working_point_index += 1
+		else:
+			filename = self.filelist[self.working_file_index]
+			if self.working_list_index >= len(self.working_list):
+				if self.working_file_index >= len(self.filelist):
+					raise StopIteration
+				self.working_list = self.load_list_from_file(filename)
+				self.working_file_index += 1
+			pt = Point(self.working_list[self.working_list_index])
+			self.working_list_index += 1
+			return pt
 
-	def load_list_from_file(self):
-		self.working_file = self.filelist[self.working_file_index]
-		print('New file: ' + self.working_file)
-		with open(os.path.join(self.archive_dir, self.working_file), 'r') as f:
+	def load_list_from_file(self, filename):
+		print('New file: ' + filename)
+		with open(os.path.join(self.archive_dir, filename), 'r') as f:
 			full_file = f.read()
 		pattern = '(?P<trkpt>\<trkpt.*?\/trkpt\>)'
-		self.working_list = re.findall(pattern, full_file)
 		self.working_list_index = 0
+		return re.findall(pattern, full_file)

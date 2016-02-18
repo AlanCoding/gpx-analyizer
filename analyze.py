@@ -3,10 +3,10 @@ import re
 import sys
 import itertools
 from datetime import datetime
-from alancodinggpx.objects import Point, Archive
+from alancodinggpx.objects import Archive
 
 # Put your gpx archive files in the archive directory
-archive = Archive('archive/')
+archive = Archive('archive/', cache=True)
 print('\n')
 print(str(archive))
 
