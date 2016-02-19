@@ -1,6 +1,7 @@
 import re
 import os
-import pickle
+# import pickle
+import sqlite3
 from datetime import datetime
 from math import radians, cos, sin, asin, sqrt
 
@@ -112,10 +113,13 @@ class Archive(object):
 
 	point_list = None
 
-	def __init__(self, path, cache=False):
+	def __init__(self, path='archive/', save='save/tracks.db'):
 		cwd = os.getcwd()
-		if cache:
-			dest_filename = os.path.join(cwd, 'pickle/points_pickle.p')
+		save_dir = os.path.join(cwd, save)
+
+		
+		if os.path.isfile(save_dir):
+			dest_filename = os.path.join(cwd, 'save/points_pickle.p')
 			if os.path.isfile(dest_filename):
 				self.point_list = pickle.load( open( dest_filename, "rb" ) )
 				self.working_point_index = 0
@@ -144,7 +148,7 @@ class Archive(object):
 				for pattern in patern_list:
 					pt_list.append(Point(pattern))
 			self.point_list = pt_list
-			dest_filename = os.path.join(cwd, 'pickle/points_pickle.p')
+			dest_filename = os.path.join(cwd, 'save/points_pickle.p')
 			pickle.dump(self.point_list, open(dest_filename, 'wb'))
 
 		self.working_file_index = 0
