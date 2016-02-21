@@ -6,7 +6,7 @@ from datetime import datetime
 from alancodinggpx.objects import Archive
 
 # Put your gpx archive files in the archive directory
-archive = Archive('archive/', cache=True)
+archive = Archive('archive/', cache=False)
 print('\n')
 print(str(archive))
 

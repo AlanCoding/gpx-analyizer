@@ -37,6 +37,8 @@ class Point(object):
 	speed = None
 	course = None
 	cord = None
+	
+	last = None
 
 	def __init__(self, full_string):
 		time = self.extract_field(full_string, 'time')
@@ -100,6 +102,25 @@ class Point(object):
 		if lat is None or lon is None:
 			raise Exception('Lattitude and longitude for point not found')
 		return (float(lat), float(lon))
+		
+	def set_last(self, last):
+		if last is not None:
+			if last.last is not None:
+				if last.last.last is not None:
+					# deallocate the old ones for memory purposes
+					last.last.last = None
+			self.last = last
+	
+	def calc_acceleration(self):
+		if self.last is not None and self.last.last is not None:
+			v1 = self.calc_speed()
+			v2 = self.last.calc_speed()
+			if v1 is None or v2 is None:
+				return None
+			deltat = 0.5 * (self.time - self.last.last.time)
+			deltav = v1 - v2
+		else:
+			return None
 
 
 class Archive(object):
@@ -184,3 +205,12 @@ class Archive(object):
 		pattern = '(?P<trkpt>\<trkpt.*?\/trkpt\>)'
 		self.working_list_index = 0
 		return re.findall(pattern, full_file)
+
+
+class Analyzer(object):
+	archive = None
+	
+	def __init__(self, **kwargs):
+		self.archive = Archive(**kwargs)
+		
+	
