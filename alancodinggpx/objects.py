@@ -134,12 +134,12 @@ class Archive(object):
 
 	point_list = None
 
-	def __init__(self, path='archive/', save='save/tracks.db'):
+	def __init__(self, path='archive/', save='save/tracks.db', cache=False):
 		cwd = os.getcwd()
 		save_dir = os.path.join(cwd, save)
 
 		
-		if os.path.isfile(save_dir):
+		if os.path.isdir(save_dir) and cache:
 			dest_filename = os.path.join(cwd, 'save/points_pickle.p')
 			if os.path.isfile(dest_filename):
 				self.point_list = pickle.load( open( dest_filename, "rb" ) )
@@ -173,7 +173,7 @@ class Archive(object):
 			pickle.dump(self.point_list, open(dest_filename, 'wb'))
 
 		self.working_file_index = 0
-		self.load_list_from_file(self.filelist[0])
+		self.working_list = self.load_list_from_file(self.filelist[0])
 
 	def __str__(self):
 		return 'gpx archive with ' + str(len(self.filelist)) + ' files'
@@ -188,10 +188,10 @@ class Archive(object):
 			return self.point_list[self.working_point_index]
 			self.working_point_index += 1
 		else:
-			filename = self.filelist[self.working_file_index]
 			if self.working_list_index >= len(self.working_list):
 				if self.working_file_index >= len(self.filelist):
 					raise StopIteration
+				filename = self.filelist[self.working_file_index]
 				self.working_list = self.load_list_from_file(filename)
 				self.working_file_index += 1
 			pt = Point(self.working_list[self.working_list_index])
@@ -213,4 +213,39 @@ class Analyzer(object):
 	def __init__(self, **kwargs):
 		self.archive = Archive(**kwargs)
 		
+	def go(self):
+		hist_bins = 100
+		hist_delta = 1
+		hist_max_width = 75
+		shist = [0 for i in range(hist_bins)]
+
+		hist_dict = {}
+
+		i = 0
+		for pt in self.archive:
+			i += 1
+			if i < 100:
+				print(str(pt))
+
+			if i > 1:
+				if pt.speed is not None:
+					shist[int(pt.speed/hist_delta)] += 1
+					if pt.speed not in hist_dict:
+						hist_dict[pt.speed] = 1
+					else:
+						hist_dict[pt.speed] += 1
+
+			last = pt
+
+		print('\n')
+		print('Speed histogram:')
+		print(' total sample points= ' + str(sum(shist)))
+
+		print('upper_bound      frequency')
+		hist_max = max(hist_dict.values())
+		for k in sorted(hist_dict.keys()):
+			print(str(round(k*2.23694,2)).ljust(7) + '#' * int(hist_dict[k] * hist_max_width / hist_max) +
+				'   ' + str(hist_dict[k]))
+
+		print('')
 	

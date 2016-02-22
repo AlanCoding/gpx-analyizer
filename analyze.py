@@ -3,7 +3,7 @@ import re
 import sys
 import itertools
 from datetime import datetime
-from alancodinggpx.objects import Archive
+from alancodinggpx.objects import Archive, Analyzer
 
 # Put your gpx archive files in the archive directory
 archive = Archive('archive/', cache=False)
@@ -30,38 +30,5 @@ for pt in itertools.islice(archive, 3):
 # Cycle through entire data
 print('Testing entirity of the files:')
 
-hist_bins = 100
-hist_delta = 1
-hist_max_width = 75
-shist = [0 for i in range(hist_bins)]
-
-hist_dict = {}
-
-i = 0
-for pt in archive:
-	i += 1
-	if i < 100:
-		print(str(pt))
-
-	if i > 1:
-		if pt.speed is not None:
-			shist[int(pt.speed/hist_delta)] += 1
-			if pt.speed not in hist_dict:
-				hist_dict[pt.speed] = 1
-			else:
-				hist_dict[pt.speed] += 1
-
-	last = pt
-
-print('\n')
-print('Speed histogram:')
-print(' total sample points= ' + str(sum(shist)))
-
-print('upper_bound      frequency')
-hist_max = max(hist_dict.values())
-for k in sorted(hist_dict.keys()):
-	print(str(round(k*2.23694,2)).ljust(7) + '#' * int(hist_dict[k] * hist_max_width / hist_max) +
-		'   ' + str(hist_dict[k]))
-
-print('')
-# print('sorted values: ' + str(sorted(hist_dict.keys())))
+analyzer = Analyzer(cache=False)
+analyzer.go()
