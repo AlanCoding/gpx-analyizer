@@ -73,12 +73,12 @@ class Point(object):
 			else:
 				return (dirs[dint] + dirs[(dint-1) % 4]).ljust(2)
 
-	def dist(self, p2):
-		return self.cord.dist(p2.cord)
+	def dist(self):
+		return self.cord.dist(self.last.cord)
 
-	def calc_speed(self, p2):
-		distance = self.cord.dist(p2.cord)
-		deltat = (self.time - p2.time).total_seconds()
+	def calc_speed(self):
+		distance = self.cord.dist(self.last.cord)
+		deltat = (self.time - self.last.time).total_seconds()
 		return distance / deltat
 
 	def extract_field(self, full_string, name):
@@ -117,8 +117,9 @@ class Point(object):
 			v2 = self.last.calc_speed()
 			if v1 is None or v2 is None:
 				return None
-			deltat = 0.5 * (self.time - self.last.last.time)
+			deltat = 0.5 * (self.time - self.last.last.time).total_seconds()
 			deltav = v1 - v2
+			return (deltav/deltat)
 		else:
 			return None
 
@@ -133,6 +134,8 @@ class Archive(object):
 	working_point_index = None
 
 	point_list = None
+	
+	last = None
 
 	def __init__(self, path='archive/', save='save/tracks.db', cache=False):
 		cwd = os.getcwd()
@@ -195,6 +198,8 @@ class Archive(object):
 				self.working_list = self.load_list_from_file(filename)
 				self.working_file_index += 1
 			pt = Point(self.working_list[self.working_list_index])
+			pt.set_last(self.last)
+			self.last = pt
 			self.working_list_index += 1
 			return pt
 
@@ -222,6 +227,7 @@ class Analyzer(object):
 		hist_dict = {}
 
 		i = 0
+		print('First hundred table')
 		for pt in self.archive:
 			i += 1
 			if i < 100:
