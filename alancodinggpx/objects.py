@@ -4,6 +4,7 @@ import os
 import sqlite3
 from datetime import datetime
 from math import radians, cos, sin, asin, sqrt
+from alancodinggpx import processors
 
 
 class Coordinate(object):
@@ -214,9 +215,15 @@ class Archive(object):
 
 class Analyzer(object):
 	archive = None
+	proc_list = None
 	
 	def __init__(self, **kwargs):
 		self.archive = Archive(**kwargs)
+		proc_names = [p for p in dir(processors) if not p.startswith('__')]
+		self.proc_list = []
+		for proc_name in proc_names:
+			ProcessorClass = getattr(processors, proc_name)
+			self.proc_list.append(ProcessorClass())
 		
 	def go(self):
 		hist_bins = 100
