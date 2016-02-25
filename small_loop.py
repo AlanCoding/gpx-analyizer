@@ -1,13 +1,6 @@
 from alancodinggpx.objects import Archive
 import itertools
 
-from alancodinggpx import processors
-
-for p_str in [p for p in dir(processors) if not p.startswith('__')]:
-	RealClass = getattr(processors, p_str)
-	objt = RealClass()
-	objt.hi_mom()
-
 # Put your gpx archive files in the archive directory
 archive = Archive('archive/', cache=False)
 print('\n')

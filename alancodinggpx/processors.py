@@ -1,28 +1,40 @@
-def bump_insert(array, val):
-	N = len(array)
-	for i in range(N):
-		if val > array[i]:
-			for j in range(i+1, N):
-				array[j] = array[j-1]
-			array[i] = val
-			return True
-	return False
+import copy
+
 
 class TopSpeeds(object):
 	high_speeds = None
 	
 	def __init__(self):
-		self.high_speeds = [(None, 0) for i in range(5)]
+		self.high_speeds = [None for i in range(5)]
 		
 	def update(self, point):
 		the_speed = point.calc_speed()
-		if the_speed < min(self.high_speeds):
+		if not type(the_speed) is float:
 			return False
-		bump_insert(self.high_speeds, the_speed)
+		for i in range(5):
+			if not type(self.high_speeds[i]) is float or the_speed > self.high_speeds[i].calc_speed():
+				self.high_speeds[i] = copy.copy(point)
+				return True
+		return False
 		
-	def print(self):
+	def display(self):
+		print("Top 5 speeds reached:")
+		for pt in self.high_speeds:
+			print(pt.full_print())
 	
-class Object2(object):
+class PrintFirst100(object):
+	i = None
 	
-	def hi_mom(self):
-		print("hi mom!1")
+	def __init__(self):
+		self.i = 0
+		print("Print first 100 points")
+		
+	def update(self, point):
+		if self.i < 100:
+			print(point.full_print())
+		elif self.i == 100:
+			print('')  # line break
+		self.i += 1
+	
+	def display(self):
+		pass

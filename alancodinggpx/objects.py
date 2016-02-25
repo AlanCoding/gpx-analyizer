@@ -2,6 +2,7 @@ import re
 import os
 # import pickle
 import sqlite3
+import inspect
 from datetime import datetime
 from math import radians, cos, sin, asin, sqrt
 from alancodinggpx import processors
@@ -58,6 +59,9 @@ class Point(object):
 		else:
 			return 'moving ' + str(round(self.speed*2.23694,2)).ljust(5) + ' mph ' + str(self.cardnal()) + ' at ' + str(self.time)
 
+	def full_print(self):
+		return self.__str__() + '  ' + self.cord.__str__()
+
 	def cardnal(self):
 		if self.course is None:
 			return 'stationary'
@@ -78,9 +82,12 @@ class Point(object):
 		return self.cord.dist(self.last.cord)
 
 	def calc_speed(self):
-		distance = self.cord.dist(self.last.cord)
-		deltat = (self.time - self.last.time).total_seconds()
-		return distance / deltat
+		if self.last is not None:
+			distance = self.cord.dist(self.last.cord)
+			deltat = (self.time - self.last.time).total_seconds()
+			return distance / deltat
+		else:
+			return None
 
 	def extract_field(self, full_string, name):
 		prefix = ''
@@ -219,11 +226,15 @@ class Analyzer(object):
 	
 	def __init__(self, **kwargs):
 		self.archive = Archive(**kwargs)
-		proc_names = [p for p in dir(processors) if not p.startswith('__')]
+		proc_names = [p for p in dir(processors)]
 		self.proc_list = []
 		for proc_name in proc_names:
-			ProcessorClass = getattr(processors, proc_name)
-			self.proc_list.append(ProcessorClass())
+			if not proc_name[0].isupper():
+				continue
+			ProcessorClass_ = getattr(processors, proc_name)
+			print('proc: ' + proc_name)
+			proc_instance = ProcessorClass_()
+			self.proc_list.append(proc_instance)
 		
 	def go(self):
 		hist_bins = 100
@@ -233,20 +244,17 @@ class Analyzer(object):
 
 		hist_dict = {}
 
-		i = 0
-		print('First hundred table')
 		for pt in self.archive:
-			i += 1
-			if i < 100:
-				print(str(pt))
+			
+			for proc in self.proc_list:
+				proc.update(pt)
 
-			if i > 1:
-				if pt.speed is not None:
-					shist[int(pt.speed/hist_delta)] += 1
-					if pt.speed not in hist_dict:
-						hist_dict[pt.speed] = 1
-					else:
-						hist_dict[pt.speed] += 1
+			if pt.speed is not None:
+				shist[int(pt.speed/hist_delta)] += 1
+				if pt.speed not in hist_dict:
+					hist_dict[pt.speed] = 1
+				else:
+					hist_dict[pt.speed] += 1
 
 			last = pt
 
@@ -261,4 +269,7 @@ class Analyzer(object):
 				'   ' + str(hist_dict[k]))
 
 		print('')
+		
+		for proc in self.proc_list:
+			proc.display()
 	
