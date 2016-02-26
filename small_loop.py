@@ -13,15 +13,12 @@ i = 0
 N = 7
 print('First ' + str(N) + ' items in file list\n')
 for pt in itertools.islice(archive, N):
+	print(pt.full_print())
 	if i > 0:
 		print('time diff:    ' + str((pt.time - pt_last.time).total_seconds()) + ' seconds')
-		print('meters moved: ' + str(pt.dist()))
-		print('speed, calc: ' + str(round(pt.calc_speed(),2)) + ' given: ' + str(pt.speed))
-		a = pt.calc_acceleration()
+		a = pt.acceleration_calc
 		if a is not None:
 			print('acc calc:    ' + str(round(a, 5)))
 	pt_last = pt
 	i += 1
-	print(str(pt))
-	print('cords: ' + str(pt.cord))
 	print('')

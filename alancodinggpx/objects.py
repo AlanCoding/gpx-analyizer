@@ -1,11 +1,11 @@
-import re
 import os
+import re
 # import pickle
 import sqlite3
 import inspect
 from datetime import datetime
 from math import radians, cos, sin, asin, sqrt
-from alancodinggpx import processors
+from alancodinggpx import processors, parsers
 
 
 class Coordinate(object):
@@ -16,7 +16,7 @@ class Coordinate(object):
 		self.ele = ele
 
 	def __str__(self):
-		return '(la:' + str(self.lat) + ' lo:' + str(self.lon) + ' el:' + str(self.ele) + ')'
+		return '(la:' + str(self.lat).ljust(10) + ' lo:' + str(self.lon).ljust(10) + ' el:' + str(self.ele) + ')'
 
 	def dist(self, c2):
 		d_lon = c2.lon - self.lon
@@ -41,17 +41,43 @@ class Point(object):
 	cord = None
 	
 	last = None
+	
+	dist = None
+	speed_calc = None
+	acceleration_calc = None
 
-	def __init__(self, full_string):
-		time = self.extract_field(full_string, 'time')
+	def __init__(self, full_string, last, next_last):
+		# Extract fields from the gpx archive text
+		time = parsers.extract_field(full_string, 'time')
 		self.time = datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ')
-		speed = self.extract_field(full_string, 'speed')
+		speed = parsers.extract_field(full_string, 'speed')
 		self.speed = float(speed) if type(speed) is str else None
-		course = self.extract_field(full_string, 'course')
+		course = parsers.extract_field(full_string, 'course')
 		self.course = float(course) if type(course) is str else None
-		(lat, lon) = self.extract_cords(full_string)
-		ele = float(self.extract_field(full_string, 'ele'))
+		(lat, lon) = parsers.extract_cords(full_string)
+		ele = float(parsers.extract_field(full_string, 'ele'))
 		self.cord = Coordinate(lat, lon, ele)
+		# Calculated fields
+		if last is not None:
+			# distance from last point
+			self.dist = self.cord.dist(last.cord)
+			# speed calculation
+			deltat = (self.time - last.time).total_seconds()
+			self.speed_calc =  self.dist / deltat
+			# acceleration calculation
+			if next_last is not None:
+				v1 = self.speed_calc
+				v2 = last.speed_calc
+				# if v1 is None or v2 is None:
+				# 	self.acceleration_calc = None
+				deltat = 0.5 * (self.time - next_last.time).total_seconds()
+				deltav = v1 - v2
+				self.acceleration_calc = (deltav/deltat)
+			else:
+				self.acceleration_calc = None
+		else:
+			self.speed_calc = None
+			self.acceleration_calc = None
 
 	def __str__(self):
 		if self.speed is None:
@@ -78,59 +104,6 @@ class Point(object):
 			else:
 				return (dirs[dint] + dirs[(dint-1) % 4]).ljust(2)
 
-	def dist(self):
-		return self.cord.dist(self.last.cord)
-
-	def calc_speed(self):
-		if self.last is not None:
-			distance = self.cord.dist(self.last.cord)
-			deltat = (self.time - self.last.time).total_seconds()
-			return distance / deltat
-		else:
-			return None
-
-	def extract_field(self, full_string, name):
-		prefix = ''
-		if name in ('TrackPointExtension', 'speed', 'course'):
-			prefix = 'gpxtpx:'
-		pattern = '\<' + prefix + name + '\>(?P<guts>.*?)\<\/' + prefix + name + '\>'
-		finds = re.findall(pattern, full_string)
-		if len(finds) != 1:
-			if name == 'time' or name == 'ele':
-				raise Exception(str(len(finds)) + ' duplicate fields found for '+name)
-			else:
-				return None
-		return finds[0]
-
-	def extract_cords(self, full_string):
-		pattern = re.compile('\<trkpt\slat="(?P<lat>-?[0-9]+\.[0-9]+)"\slon="(?P<lon>-?[0-9]+\.[0-9]+)"\>')
-		match = pattern.match(full_string)
-		lat = match.group('lat')
-		lon = match.group('lon')
-		if lat is None or lon is None:
-			raise Exception('Lattitude and longitude for point not found')
-		return (float(lat), float(lon))
-		
-	def set_last(self, last):
-		if last is not None:
-			if last.last is not None:
-				if last.last.last is not None:
-					# deallocate the old ones for memory purposes
-					last.last.last = None
-			self.last = last
-	
-	def calc_acceleration(self):
-		if self.last is not None and self.last.last is not None:
-			v1 = self.calc_speed()
-			v2 = self.last.calc_speed()
-			if v1 is None or v2 is None:
-				return None
-			deltat = 0.5 * (self.time - self.last.last.time).total_seconds()
-			deltav = v1 - v2
-			return (deltav/deltat)
-		else:
-			return None
-
 
 class Archive(object):
 	filelist = None
@@ -144,6 +117,7 @@ class Archive(object):
 	point_list = None
 	
 	last = None
+	next_last = None
 
 	def __init__(self, path='archive/', save='save/tracks.db', cache=False):
 		cwd = os.getcwd()
@@ -185,6 +159,8 @@ class Archive(object):
 
 		self.working_file_index = 0
 		self.working_list = self.load_list_from_file(self.filelist[0])
+		self.last = None
+		self.next_last = None
 
 	def __str__(self):
 		return 'gpx archive with ' + str(len(self.filelist)) + ' files'
@@ -205,11 +181,11 @@ class Archive(object):
 				filename = self.filelist[self.working_file_index]
 				self.working_list = self.load_list_from_file(filename)
 				self.working_file_index += 1
-			pt = Point(self.working_list[self.working_list_index])
-			pt.set_last(self.last)
-			self.last = pt
+			pt = Point(self.working_list[self.working_list_index], self.last, self.next_last)
 			self.working_list_index += 1
-			return pt
+		self.next_last = self.last
+		self.last = pt
+		return pt
 
 	def load_list_from_file(self, filename):
 		print('New file: ' + filename)
@@ -228,48 +204,22 @@ class Analyzer(object):
 		self.archive = Archive(**kwargs)
 		proc_names = [p for p in dir(processors)]
 		self.proc_list = []
+		print('Running processors: ')
 		for proc_name in proc_names:
 			if not proc_name[0].isupper():
 				continue
+			print(' - ' + proc_name)
 			ProcessorClass_ = getattr(processors, proc_name)
 			print('proc: ' + proc_name)
 			proc_instance = ProcessorClass_()
 			self.proc_list.append(proc_instance)
 		
 	def go(self):
-		hist_bins = 100
-		hist_delta = 1
-		hist_max_width = 75
-		shist = [0 for i in range(hist_bins)]
-
-		hist_dict = {}
-
+		# Start iteration over all points in the archive
 		for pt in self.archive:
-			
 			for proc in self.proc_list:
 				proc.update(pt)
-
-			if pt.speed is not None:
-				shist[int(pt.speed/hist_delta)] += 1
-				if pt.speed not in hist_dict:
-					hist_dict[pt.speed] = 1
-				else:
-					hist_dict[pt.speed] += 1
-
-			last = pt
-
-		print('\n')
-		print('Speed histogram:')
-		print(' total sample points= ' + str(sum(shist)))
-
-		print('upper_bound      frequency')
-		hist_max = max(hist_dict.values())
-		for k in sorted(hist_dict.keys()):
-			print(str(round(k*2.23694,2)).ljust(7) + '#' * int(hist_dict[k] * hist_max_width / hist_max) +
-				'   ' + str(hist_dict[k]))
-
-		print('')
-		
+		# Show the fruits of our labors on the terminal
 		for proc in self.proc_list:
 			proc.display()
 	
