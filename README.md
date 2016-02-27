@@ -39,7 +39,7 @@ this.
 
 ## Discoveries
 
-## Packaged speed values
+### Packaged speed values
 
 The Garmin units appear to record speed only in specific increments. These
 increments seem to be 1.37 or 1.38, depending on how the rounding works out.
@@ -49,49 +49,28 @@ Here are a few of the first set of speeds that the unit uses:
 
 In terms of units, there are almost certainly in terms of meters per second.
 
-## Example outputs
+### Data Imperfections
 
-Here is my own speed histogram, using bins defined by the native storage
-method of speeds in the Garmin unit. These are converted to mph units below.
+As of version 0.1, we can get a list of the top attributes for various fields.
+Many of these just demonstrate where the data is bad. I will explain this 
+point-by-point.
 
-		upper_bound      frequency
-		3.0646  ######################
-		6.1516  ################################
-		9.2162  ###############################################
-		12.2808 ###########################################################################
-		15.3454 ###################################################################
-		18.4324 ####################################################
-		21.497  ##########################################
-		24.5616 ####################################
-		27.6262 ##################################
-		30.7132 #####################################
-		33.7778 ####################################
-		36.8424 #######################################
-		39.907  ######################################
-		42.994  ##################################
-		46.0586 ###########################
-		49.1232 #######################
-		52.1878 #####################
-		55.2748 #####################
-		58.3394 ######################
-		61.404  ######################
-		64.4686 ###########################
-		67.5556 #########################
-		70.6202 #################
-		73.6848 ########
-		76.7494 ##
-		79.8364
-		82.901
-		95.1818
-		101.311
-		104.398
-		122.808
-		150.4342
+#### Elevation
 
-Why does the upper scale go up to 150 mph? Because it had data for that speed.
-No, I assure you I never drove this fast. It's a numerical error that sometimes
-pops up. This is out of >250,000 speed points, so it's not unreasonable that
-it produced a dozen outliers due to equipment malfunction. I'm interested
-to find out more about this small number of points. It seems likely that
-those points were closer to the detection limits, so we would expect service
-cutoff or other sporadic behavior around those points.
+I found about 9 clusters of highly negative elevation values. Again, no, 
+I did not drive into Death Vally or something real like that. These are data 
+artifacts that will eventually need to get ironed out somehow.
+
+## Roadmap
+
+Future features:
+
+ - Data cleaning process that will drop a point if there is something 
+   suspicious about it
+ - Segment-based objects that will store information about driving between 
+   stops
+ - Trip and destination based objects
+
+The final point is the spiffy ultimate goal, but the intermediate steps 
+remain a little more murky. Should we store all segments in an array for 
+the entire archive? That's not entirely clear.

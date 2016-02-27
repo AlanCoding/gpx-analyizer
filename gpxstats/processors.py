@@ -1,4 +1,5 @@
 import copy
+import sys
 
 
 class TopAttributes(object):
@@ -45,22 +46,24 @@ class TopAttributes(object):
 		return True
 		
 	def display(self):
-		print("-- Display of the highest//lowest of ... --")
-		print("    " + " ".join(self.fields))
+		sys.stdout.write("-- Display of the highest//lowest of ... --\n")
+		sys.stdout.write("    " + " ".join(self.fields) + "\n")
 		for fd in self.fields:
-			print("\nTop " + str(self.N) + " reached:")
+			sys.stdout.write("\nTop " + str(self.N) + str(fd) + " reached:\n")
+			self.top_vals[fd].sort(key=lambda p: getattr(p, fd), reverse=True)
 			for pt in self.top_vals[fd]:
 				self.point_print(pt, fd)
-			print("\nLowest " + str(self.N) + " reached")
+			sys.stdout.write("\nLowest " + str(self.N) + " reached\n")
+			self.low_vals[fd].sort(key=lambda p: getattr(p, fd), reverse=False)
 			for pt in self.low_vals[fd]:
 				self.point_print(pt, fd)
 				
 	def point_print(self, pt, fd):
-		print(pt.full_print())
+		sys.stdout.write(pt.full_print())
 		the_val = getattr(pt, fd)
 		if 'speed' in fd:
 			the_val = the_val * 2.23694  # Convert speeds m/s -> mph
-		print('  ' + fd + ': ' + str(the_val))
+		sys.stdout.write(' ' + fd + ': ' + str(the_val) + '\n')
 
 
 class PrintFirst100(object):
