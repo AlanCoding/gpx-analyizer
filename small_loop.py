@@ -1,4 +1,4 @@
-from alancodinggpx.objects import Archive
+from gpxstats.objects import Archive
 import itertools
 import sys
 

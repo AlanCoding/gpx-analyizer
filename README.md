@@ -1,11 +1,26 @@
-# gpx-analyizer
-Project to gobble up some personal Garmin navigator data.
+# GPX Stats Project
+
+This is my project to gobble up some personal Garmin navigator data.
+Its point is to be a data grinder for anyone who owns a navigation unit 
+and drives around with it regularly. The kinds of questions it hopes to 
+eventually answer are things like:
+
+ - Where places did you visit most?
+ - What speeds do you typically drive at?
+ - What are the highest elevations you drive to?
+ - What's the hardest you've ever braked?
+
+### Site Map
 
 For research about some related resources, see [the notes page](docs/Notes.md).
-For some pretty graphs, I hope to have an iPython notebook soon.
-Will also look into a compilation of sample outputs as well.
+For some pretty graphs see [the data analysis examples](docs/data_examples.md).
 
 ## Instructions
+
+Did you know that your GPS unit is probably storing a record of everywhere 
+you go? Creeped out? Turn those lemons into lemonade today.
+
+### "In Real Life" Instructions
 
 Plug in your Garmin unit to your computer and copy over the files in the
 gpx archive folder into the archive folder of this project. These should
@@ -14,13 +29,19 @@ follow a filename pattern like:
  - 1.gpx
  - 2.gpx
  - 3.gpx
+ 
+The unit will store these sequentially as you drive, but it will delete 
+old ones as it accumulates new data. Thus, I can't predict what numbers
+you will see.
+
+### Python Instructions
 
 You must put them in the archive folder with this naming. Then you can run the
 analyzer with `python analyze.py`. Or, you can import the python module, and
 then use it kind of like this:
 
 ```python
-from alancodinggpx.objects import Archive
+from gpxstats.objects import Archive
 
 archive = Archive('archive/')
 
@@ -37,7 +58,10 @@ can mark some points as invalid. But our intuition is much more detailed than
 this.
 
 
-## Discoveries
+## Discoveries about Archive Character
+
+Understanding exactly what type of thing a GPS unit stores is a trial and 
+error process.
 
 ### Packaged speed values
 

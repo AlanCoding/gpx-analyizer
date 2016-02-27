@@ -5,7 +5,7 @@ import sqlite3
 import inspect
 from datetime import datetime
 from math import radians, cos, sin, asin, sqrt
-from alancodinggpx import processors, parsers
+from gpxstats import processors, parsers
 
 
 class Coordinate(object):

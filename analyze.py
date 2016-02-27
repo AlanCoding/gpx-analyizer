@@ -1,4 +1,4 @@
-from alancodinggpx.objects import Archive, Analyzer
+from gpxstats.objects import Archive, Analyzer
 
 # Cycle through entire data
 print('Testing entirity of the files:')
