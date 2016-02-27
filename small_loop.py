@@ -17,7 +17,7 @@ for pt in itertools.islice(archive, N):
 	if i > 0:
 		sys.stdout.write(
 			'\n    time diff:    ' + 
-			str((pt.time - pt_last.time).total_seconds()) + ' seconds'
+			str(pt.delta_time(pt_last)) + ' seconds'
 		)
 		a = pt.acceleration_calc
 		if a is not None:

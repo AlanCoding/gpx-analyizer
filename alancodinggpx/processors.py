@@ -3,6 +3,7 @@ import copy
 
 class TopAttributes(object):
 	fields = ['speed_calc', 'speed', 'acceleration_calc', 'dist', 'elevation']
+	seconds_tol = 3600
 	top_vals = None
 	low_vals = None
 	N = 20
@@ -24,13 +25,23 @@ class TopAttributes(object):
 				# Enter the point in the contest for highest values
 				if self.top_vals[fd][i] is None:
 					self.top_vals[fd][i] = copy.copy(point)
-				elif the_val is not None and the_val > getattr(self.top_vals[fd][i], fd):
-					self.top_vals[fd][i] = copy.copy(point)
+				elif the_val > getattr(self.top_vals[fd][i], fd):
+					if self.not_same_time(point, self.top_vals[fd], i):
+						self.top_vals[fd][i] = copy.copy(point)
 				# Now enter the point in the contest for lowest values
 				if self.low_vals[fd][i] is None:
 					self.low_vals[fd][i] = copy.copy(point)
-				elif the_val is not None and the_val < getattr(self.low_vals[fd][i], fd):
-					self.low_vals[fd][i] = copy.copy(point)
+				elif the_val < getattr(self.low_vals[fd][i], fd):
+					if self.not_same_time(point, self.low_vals[fd], i):
+						self.low_vals[fd][i] = copy.copy(point)
+		return True
+
+	def not_same_time(self, point, top_list, i):
+		for k in range(self.N):
+			if i == k:
+				continue
+			if top_list[k] is not None and point.delta_time(top_list[k]) < self.seconds_tol:
+				return False
 		return True
 		
 	def display(self):

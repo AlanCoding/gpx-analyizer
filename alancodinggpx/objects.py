@@ -16,7 +16,7 @@ class Coordinate(object):
 		self.ele = ele
 
 	def __str__(self):
-		return '(la:' + str(self.lat).ljust(10) + ' lo:' + str(self.lon).ljust(10) + ' el:' + str(self.ele) + ')'
+		return '(' + (str(self.lat) + ',' + str(self.lon)).ljust(21) + ' el:' + str(self.ele) + ')'
 
 	def dist(self, c2):
 		d_lon = c2.lon - self.lon
@@ -68,7 +68,7 @@ class Point(object):
 			if next_last is not None:
 				v1 = self.speed_calc
 				v2 = last.speed_calc
-				deltat = 0.5 * (self.time - next_last.time).total_seconds()
+				deltat = 0.5 * self.delta_time(next_last)
 				deltav = v1 - v2
 				self.acceleration_calc = (deltav/deltat)
 			else:
@@ -82,6 +82,9 @@ class Point(object):
 			return 'stopped at             ' + str(self.time)
 		else:
 			return 'moving ' + str(round(self.speed*2.23694,2)).ljust(5) + ' mph ' + str(self.cardnal()) + ' at ' + str(self.time)
+
+	def delta_time(self, point2):
+		return (self.time - point2.time).total_seconds()
 
 	def full_print(self):
 		return self.__str__() + '  ' + self.cord.__str__()
