@@ -68,8 +68,6 @@ class Point(object):
 			if next_last is not None:
 				v1 = self.speed_calc
 				v2 = last.speed_calc
-				# if v1 is None or v2 is None:
-				# 	self.acceleration_calc = None
 				deltat = 0.5 * (self.time - next_last.time).total_seconds()
 				deltav = v1 - v2
 				self.acceleration_calc = (deltav/deltat)
@@ -103,6 +101,10 @@ class Point(object):
 				return dirs[dint].ljust(2)
 			else:
 				return (dirs[dint] + dirs[(dint-1) % 4]).ljust(2)
+
+	@property
+	def elevation(self):
+		return self.cord.ele
 
 
 class Archive(object):

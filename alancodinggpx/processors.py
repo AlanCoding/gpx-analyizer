@@ -1,30 +1,55 @@
 import copy
 
 
-class TopSpeeds(object):
-	high_speeds = None
+class TopAttributes(object):
+	fields = ['speed_calc', 'speed', 'acceleration_calc', 'dist', 'elevation']
+	top_vals = None
+	low_vals = None
+	N = 20
 	
 	def __init__(self):
-		self.high_speeds = [None for i in range(5)]
+		self.top_vals = {}
+		for fd in self.fields:
+			self.top_vals[fd] = [None for i in range(self.N)]
+		self.low_vals = {}
+		for fd in self.fields:
+			self.low_vals[fd] = [None for i in range(self.N)]
 		
 	def update(self, point):
-		the_speed = point.speed_calc
-		if not type(the_speed) is float:
-			return False
-		for i in range(5):
-			if self.high_speeds[i] is None:
-				self.high_speeds[i] = copy.copy(point)
-				return True
-			if the_speed is not None and the_speed > self.high_speeds[i].speed_calc:
-				self.high_speeds[i] = copy.copy(point)
-				return True
-		return False
+		for fd in self.fields:
+			the_val = getattr(point, fd)
+			if not type(the_val) is float:
+				continue
+			for i in range(self.N):
+				# Enter the point in the contest for highest values
+				if self.top_vals[fd][i] is None:
+					self.top_vals[fd][i] = copy.copy(point)
+				elif the_val is not None and the_val > getattr(self.top_vals[fd][i], fd):
+					self.top_vals[fd][i] = copy.copy(point)
+				# Now enter the point in the contest for lowest values
+				if self.low_vals[fd][i] is None:
+					self.low_vals[fd][i] = copy.copy(point)
+				elif the_val is not None and the_val < getattr(self.low_vals[fd][i], fd):
+					self.low_vals[fd][i] = copy.copy(point)
+		return True
 		
 	def display(self):
-		print("Top 5 speeds reached:")
-		for pt in self.high_speeds:
-			print(pt.full_print())
-			print('  calc_speed: ' + str(pt.speed_calc*2.23694))
+		print("-- Display of the highest//lowest of ... --")
+		print("    " + " ".join(self.fields))
+		for fd in self.fields:
+			print("\nTop " + str(self.N) + " reached:")
+			for pt in self.top_vals[fd]:
+				self.point_print(pt, fd)
+			print("\nLowest " + str(self.N) + " reached")
+			for pt in self.low_vals[fd]:
+				self.point_print(pt, fd)
+				
+	def point_print(self, pt, fd):
+		print(pt.full_print())
+		the_val = getattr(pt, fd)
+		if 'speed' in fd:
+			the_val = the_val * 2.23694  # Convert speeds m/s -> mph
+		print('  ' + fd + ': ' + str(the_val))
 
 
 class PrintFirst100(object):
@@ -46,15 +71,13 @@ class PrintFirst100(object):
 
 
 class SpeedHistogram(object):
-	hist_delta = None
-	hist_max_width = None
+	hist_delta = 1
+	hist_max_width = 75
 	shist = None
 	hist_dict = None
 	
 	def __init__(self):
 		hist_bins = 100
-		self.hist_delta = 1
-		self.hist_max_width = 75
 		self.shist = [0 for i in range(hist_bins)]
 
 		self.hist_dict = {}
