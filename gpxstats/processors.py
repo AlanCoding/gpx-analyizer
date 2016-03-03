@@ -88,30 +88,30 @@ class AttributeHistogram(object):
 	fields = ['speed_calc', 'acceleration_calc', 'dist', 'elevation']
 	# Size of the histogram to chop it up by
 	deltas = dict(
-		'speed_calc': 1.,
-		'acceleration_calc': 0.01,
-		'dist': 5.,
-		'elevation': 10.
+		speed_calc = 1.,
+		acceleration_calc = 0.01,
+		dist = 5.,
+		elevation = 10.
 	)
 	# Minimum values to accept
 	mins = dict(
-		'speed_calc': 0.,
-		'acceleration_calc': -0.5,
-		'dist': 0.,
-		'elevation': 0.
+		speed_calc = 0.,
+		acceleration_calc = -0.5,
+		dist = 0.,
+		elevation = 0.
 	)
 	hist_array = None
 	overs = None
 	unders = None
 	# Number of points to store
-	hist_max_width = 75
+	N = 75
 
 	def __init__(self):
 		self.hist_array = {}
 		self.unders = {}
 		self.overs = {}
 		for fd in self.fields:
-			self.hist_array[fd] = {}
+			self.hist_array[fd] = [0 for i in range(self.N)]
 			self.overs[fd] = 0
 			self.unders[fd] = 0
 
@@ -122,31 +122,37 @@ class AttributeHistogram(object):
 				continue
 			place = int((the_val - self.mins[fd])/self.deltas[fd])
 			if place < 0:
-				self.unders += 1
+				self.unders[fd] += 1
 				continue
-			if place > self.hist_max_width:
-				self.overs += 1
+			if place >= self.N:
+				self.overs[fd] += 1
 				continue
-			if place in self.hist_array[fd]:
-				self.hist_array[fd][place] = 1
-			else:
-				self.hist_array[fd][place] += 1
+			self.hist_array[fd][place] += 1
 
 	def display(self):
-
 		for fd in self.fields:
-			print('\n')
-			print('%s histogram:' % fd)
-			print(' total sample points= ' + str(sum(self.hist_array[fd])))
+			sys.stdout.write('\n\n%s histogram:\n' % fd)
+			sys.stdout.write(' total sample points= ' + str(sum(self.hist_array[fd])) + '\n')
+			sys.stdout.write(
+				'  samples_over= ' + str(self.overs[fd]) + 
+				'  samples_under= ' + str(self.unders[fd]) + '\n'
+			)
 
-			print('upper_bound      frequency')
-			hist_max = max(self.hist_dict.values())
-			for k in sorted(self.hist_dict.keys()):
-				print(str(round(k*2.23694,2)).ljust(7) +
-					'#' * int(self.hist_dict[k] * self.hist_max_width / hist_max) +
-					'   ' + str(self.hist_dict[k]))
+			sys.stdout.write('upper_bound      frequency\n')
+			hist_max = max(self.hist_array[fd])
+			for k in range(self.N):
+				if 'speed' in fd:
+					key_print = k*2.23694
+				else:
+					key_print = k
+				key_print = key_print * self.deltas[fd]
+				sys.stdout.write(
+					str(round(key_print,2)).ljust(7) +
+					'#' * int(self.hist_array[fd][k] * self.N / hist_max) +
+					'   ' + str(self.hist_array[fd][k]) + '\n'
+				)
 
-			print('')
+			sys.stdout.write('')
 
 
 # TODO: Processor to store an array of stops and their statistics
