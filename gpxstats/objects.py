@@ -115,9 +115,11 @@ class Archive(object):
 
 	working_file = None
 	working_file_index = None
+	i_file = None
 	working_list = None
 	working_list_index = None
 	working_point_index = None
+	i_pattern = None
 
 	point_list = None
 	
@@ -163,7 +165,10 @@ class Archive(object):
 			pickle.dump(self.point_list, open(dest_filename, 'wb'))
 
 		self.working_file_index = 0
-		self.working_list = self.load_list_from_file(self.filelist[0])
+		# self.working_list = self.load_list_from_file(self.filelist[0])
+		self.i_file = iter(self.filelist)
+		self.i_pattern = iter([])
+		self.working_list = []
 		self.last = None
 		self.next_last = None
 
@@ -180,14 +185,22 @@ class Archive(object):
 			return self.point_list[self.working_point_index]
 			self.working_point_index += 1
 		else:
-			if self.working_list_index >= len(self.working_list):
-				if self.working_file_index >= len(self.filelist):
-					raise StopIteration
-				filename = self.filelist[self.working_file_index]
-				self.working_list = self.load_list_from_file(filename)
-				self.working_file_index += 1
-			pt = Point(self.working_list[self.working_list_index], self.last, self.next_last)
-			self.working_list_index += 1
+			try:
+				next_pattern = self.i_pattern.__next__()
+			except StopIteration:
+				# If this raises StopIteration, let it be
+				filename = self.i_file.__next__()
+				self.load_list_from_file(filename)
+				next_pattern = self.i_pattern.__next__()
+			pt = Point(next_pattern, self.last, self.next_last)
+			# if self.working_list_index >= len(self.working_list):
+			# 	if self.working_file_index >= len(self.filelist):
+			# 		raise StopIteration
+			# 	filename = self.filelist[self.working_file_index]
+			# 	self.working_list = self.load_list_from_file(filename)
+			# 	self.working_file_index += 1
+			# pt = Point(self.working_list[self.working_list_index], self.last, self.next_last)
+			# self.working_list_index += 1
 		self.next_last = self.last
 		self.last = pt
 		return pt
@@ -198,7 +211,9 @@ class Archive(object):
 			full_file = f.read()
 		pattern = '(?P<trkpt>\<trkpt.*?\/trkpt\>)'
 		self.working_list_index = 0
-		return re.findall(pattern, full_file)
+		pattern_list = re.findall(pattern, full_file)
+		self.i_pattern = iter(pattern_list)
+		return pattern_list
 
 
 class Analyzer(object):
