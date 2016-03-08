@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/AlanCoding/gpxstats.svg?branch=master)](https://travis-ci.org/AlanCoding/gpxstats)
+
 # GPX Stats Project
 
 This is my project to gobble up some personal Garmin navigator data.
