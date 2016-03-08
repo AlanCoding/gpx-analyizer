@@ -22,22 +22,33 @@ class TopAttributes(object):
 			the_val = getattr(point, fd)
 			if not type(the_val) is float:
 				continue
-			for i in range(self.N):
-				# Enter the point in the contest for highest values
-				if self.top_vals[fd][i] is None:
-					self.top_vals[fd][i] = copy.copy(point)
-				elif the_val > getattr(self.top_vals[fd][i], fd):
-					if self.not_same_time(point, self.top_vals[fd], i):
-						self.top_vals[fd][i] = copy.copy(point)
-				# Now enter the point in the contest for lowest values
-				if self.low_vals[fd][i] is None:
-					self.low_vals[fd][i] = copy.copy(point)
-				elif the_val < getattr(self.low_vals[fd][i], fd):
-					if self.not_same_time(point, self.low_vals[fd], i):
-						self.low_vals[fd][i] = copy.copy(point)
+			if self.top_vals[fd][-1] is None or the_val > getattr(self.top_vals[fd][-1], fd):
+				for i in range(self.N):
+					# Enter the point in the contest for highest values
+					incumbent = self.top_vals[fd][i]
+					if incumbent is None or the_val > getattr(incumbent, fd):
+						if self.not_same_time(point, self.top_vals[fd], i):
+							self.bump_insert(self.top_vals[fd], copy.copy(point), i)
+							# self.top_vals[fd][i] = copy.copy(point)
+						else:
+							break
+			if self.low_vals[fd][-1] is None or the_val < getattr(self.low_vals[fd][-1], fd):
+				for i in range(self.N):
+					# Now enter the point in the contest for lowest values
+					incumbent = self.low_vals[fd][i]
+					if incumbent is None or the_val < getattr(incumbent, fd):
+						if self.not_same_time(point, self.low_vals[fd], i):
+							self.bump_insert(self.low_vals[fd], copy.copy(point), i)
+							# self.low_vals[fd][i] = copy.copy(point)
 		return True
 
+	def bump_insert(self, array, value, i):
+		array[i+1:] = array[i:-1]
+		array[i] = value
+
 	def not_same_time(self, point, top_list, i):
+		if top_list[i] is None:
+			return True
 		for k in range(self.N):
 			if i == k:
 				continue
@@ -50,11 +61,11 @@ class TopAttributes(object):
 		sys.stdout.write("    " + " ".join(self.fields) + "\n")
 		for fd in self.fields:
 			sys.stdout.write("\nTop " + str(self.N) + str(fd) + " reached:\n")
-			self.top_vals[fd].sort(key=lambda p: getattr(p, fd), reverse=True)
+			# self.top_vals[fd].sort(key=lambda p: getattr(p, fd), reverse=True)
 			for pt in self.top_vals[fd]:
 				self.point_print(pt, fd)
 			sys.stdout.write("\nLowest " + str(self.N) + " reached\n")
-			self.low_vals[fd].sort(key=lambda p: getattr(p, fd), reverse=False)
+			# self.low_vals[fd].sort(key=lambda p: getattr(p, fd), reverse=False)
 			for pt in self.low_vals[fd]:
 				self.point_print(pt, fd)
 				

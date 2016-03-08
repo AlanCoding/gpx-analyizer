@@ -1,5 +1,5 @@
 from nose.tools import *
-from alancodinggpx.objects import Point
+from gpxstats.objects import Point
 
 point_string = """<trkpt lat="38.934579" lon="-77.392527"><ele>202.49</ele>
 <time>2014-02-22T14:45:30Z</time><extensions><gpxtpx:TrackPointExtension>
@@ -13,5 +13,5 @@ def teardown():
     pass
 
 def test_point_creation():
-    pt = Point(point_string)
+    pt = Point(point_string, None, None)
     assert pt.speed == 4.12
