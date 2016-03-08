@@ -40,6 +40,8 @@ class TopAttributes(object):
 						if self.not_same_time(point, self.low_vals[fd], i):
 							self.bump_insert(self.low_vals[fd], copy.copy(point), i)
 							# self.low_vals[fd][i] = copy.copy(point)
+						else:
+							break
 		return True
 
 	def bump_insert(self, array, value, i):
