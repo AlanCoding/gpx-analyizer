@@ -84,13 +84,13 @@ class PrintFirst100(object):
 	
 	def __init__(self):
 		self.i = 0
-		print("Print first 100 points")
+		sys.stdout.write("Print first 100 points\n")
 		
 	def update(self, point):
 		if self.i < 100:
-			print(point.full_print())
+			sys.stdout.write(point.full_print() + '\n')
 		elif self.i == 100:
-			print('')  # line break
+			sys.stdout.write('\n')  # line break
 		self.i += 1
 	
 	def display(self):
@@ -165,7 +165,7 @@ class AttributeHistogram(object):
 					'   ' + str(self.hist_array[fd][k]) + '\n'
 				)
 
-			sys.stdout.write('')
+			sys.stdout.write('\n')
 
 
 # TODO: Processor to store an array of stops and their statistics
@@ -193,14 +193,13 @@ class SpeedHistogram(object):
 		
 	def display(self):
 		
-		print('\n')
-		print('Speed histogram:')
-		print(' total sample points= ' + str(sum(self.shist)))
+		sys.stdout.write('\nSpeed histogram:\n')
+		sys.stdout.write(' total sample points= ' + str(sum(self.shist)) + '\n')
 
-		print('upper_bound      frequency')
+		sys.stdout.write('upper_bound      frequency\n')
 		hist_max = max(self.hist_dict.values())
 		for k in sorted(self.hist_dict.keys()):
-			print(str(round(k*2.23694,2)).ljust(7) + '#' * int(self.hist_dict[k] * self.hist_max_width / hist_max) +
-				'   ' + str(self.hist_dict[k]))
+			sys.stdout.write(str(round(k*2.23694,2)).ljust(7) + '#' * int(self.hist_dict[k] * self.hist_max_width / hist_max) +
+				'   ' + str(self.hist_dict[k]) + '\n')
 
-		print('')
+		sys.stdout.write('\n')

@@ -1,7 +1,8 @@
 from gpxstats.objects import Archive, Analyzer
+import sys
 
 # Cycle through entire data
-print('Testing entirity of the files:')
+sys.stdout.write('Testing entirity of the files:\n')
 
 analyzer = Analyzer(cache=False)
 analyzer.go()

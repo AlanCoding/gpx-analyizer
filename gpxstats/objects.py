@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 # import pickle
 import sqlite3
 import inspect
@@ -16,7 +17,10 @@ class Coordinate(object):
 		self.ele = ele
 
 	def __str__(self):
-		return '(' + (str(self.lat) + ',' + str(self.lon)).ljust(21) + ' el:' + str(self.ele) + ')'
+		return (
+			'(' + (str(self.lat) + ',' + str(self.lon)).ljust(21) + 
+			' el:' + str(self.ele).ljust(6) + ')'
+		)
 
 	def dist(self, c2):
 		d_lon = c2.lon - self.lon
@@ -69,8 +73,8 @@ class Point(object):
 				v1 = self.speed_calc
 				v2 = last.speed_calc
 				deltat = 0.5 * self.delta_time(next_last)
-				deltav = v1 - v2
-				self.acceleration_calc = (deltav/deltat)
+				deltav = float(v1) - v2
+				self.acceleration_calc = deltav/deltat
 			else:
 				self.acceleration_calc = None
 		else:
@@ -112,13 +116,9 @@ class Point(object):
 
 class Archive(object):
 	filelist = None
+	archive_dir = None
 
-	working_file = None
-	working_file_index = None
 	i_file = None
-	working_list = None
-	working_list_index = None
-	working_point_index = None
 	i_pattern = None
 
 	point_list = None
@@ -149,14 +149,14 @@ class Archive(object):
 				filelist.append(f)
 
 		# Sort file list numerically, not alphabetically
-		self.filelist = sorted(filelist, key=lambda x: float(x[:-4]))
+		filelist = sorted(filelist, key=lambda x: float(x[:-4]))
 
-		if len(self.filelist) == 0:
+		if len(filelist) == 0:
 			raise Exception('Did not find any gpx files in archive dir')
 
 		if cache and self.point_list is None:
 			pt_list = []
-			for filename in self.filelist:
+			for filename in filelist:
 				patern_list = self.load_list_from_file(filename)
 				for pattern in patern_list:
 					pt_list.append(Point(pattern))
@@ -164,11 +164,9 @@ class Archive(object):
 			dest_filename = os.path.join(cwd, 'save/points_pickle.p')
 			pickle.dump(self.point_list, open(dest_filename, 'wb'))
 
-		self.working_file_index = 0
-		# self.working_list = self.load_list_from_file(self.filelist[0])
-		self.i_file = iter(self.filelist)
+		# Set iterables to the starting position
+		self.i_file = iter(filelist)
 		self.i_pattern = iter([])
-		self.working_list = []
 		self.last = None
 		self.next_last = None
 
@@ -193,24 +191,15 @@ class Archive(object):
 				self.load_list_from_file(filename)
 				next_pattern = self.i_pattern.__next__()
 			pt = Point(next_pattern, self.last, self.next_last)
-			# if self.working_list_index >= len(self.working_list):
-			# 	if self.working_file_index >= len(self.filelist):
-			# 		raise StopIteration
-			# 	filename = self.filelist[self.working_file_index]
-			# 	self.working_list = self.load_list_from_file(filename)
-			# 	self.working_file_index += 1
-			# pt = Point(self.working_list[self.working_list_index], self.last, self.next_last)
-			# self.working_list_index += 1
 		self.next_last = self.last
 		self.last = pt
 		return pt
 
 	def load_list_from_file(self, filename):
-		print('New file: ' + filename)
+		sys.stdout.write('New file: ' + filename + '\n')
 		with open(os.path.join(self.archive_dir, filename), 'r') as f:
 			full_file = f.read()
 		pattern = '(?P<trkpt>\<trkpt.*?\/trkpt\>)'
-		self.working_list_index = 0
 		pattern_list = re.findall(pattern, full_file)
 		self.i_pattern = iter(pattern_list)
 		return pattern_list
@@ -224,13 +213,13 @@ class Analyzer(object):
 		self.archive = Archive(**kwargs)
 		proc_names = [p for p in dir(processors)]
 		self.proc_list = []
-		print('Running processors: ')
+		sys.stdout.write('Running processors: \n')
 		for proc_name in proc_names:
 			if not proc_name[0].isupper():
 				continue
-			print(' - ' + proc_name)
+			sys.stdout.write(' - ' + proc_name + '\n')
 			ProcessorClass_ = getattr(processors, proc_name)
-			print('proc: ' + proc_name)
+			sys.stdout.write('proc: ' + proc_name + '\n')
 			proc_instance = ProcessorClass_()
 			self.proc_list.append(proc_instance)
 		
