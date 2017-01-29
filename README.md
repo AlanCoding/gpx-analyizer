@@ -51,6 +51,14 @@ for pt in archive:
     print(pt.speed)
 ```
 
+#### Using the generator
+
+The above example is the class-based implementation, and in addition to that
+there is a generator-based implementation in order to provide a lighter
+option to cycle through points.
+
+
+
 ## Questions
 
 How can we take our extremely obvious intuition and apply it to a large set

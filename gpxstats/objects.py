@@ -130,7 +130,6 @@ class Archive(object):
 		cwd = os.getcwd()
 		save_dir = os.path.join(cwd, save)
 
-		
 		if os.path.isdir(save_dir) and cache:
 			dest_filename = os.path.join(cwd, 'save/points_pickle.p')
 			if os.path.isfile(dest_filename):
